@@ -77,11 +77,11 @@ class Transactions(models.Model):
 class Transfer_Money(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,  on_delete=models.CASCADE)
     Recipient_Name = models.CharField(max_length=110)
-    amount = models.FloatField()
-    account_no = models.PositiveIntegerField(unique=True, validators=[MinValueValidator(10000000), MaxValueValidator(99999999999999999)])
+    amount = models.DecimalField(decimal_places=2, max_digits=12, null=True, blank=True)
+    account_no = models.PositiveIntegerField(unique=True, validators=[MinValueValidator(10000), MaxValueValidator(99999999999999999)])
     IFSC= models.CharField(max_length=110)
     date = models.DateTimeField(auto_now=True, null=True, blank=True)
-    current_user = models.IntegerField()
+
 
     class Meta:
         db_table = 'transfer_money'

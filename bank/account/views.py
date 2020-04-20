@@ -6,12 +6,12 @@ from django.urls import reverse
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.contrib import messages
-from .models import Account_Number
+from .models import Account_Number, Transactions
 import random
 # Create your views here.
 
 
-@login_required(login_url='user_login')
+# @login_required(login_url='user_login')
 def home(request):
     return render(request, 'home.html')
 
@@ -59,7 +59,7 @@ def user_login(request):
         return render(request, "login.html", context)
 
 
-@login_required(login_url='user_login')
+# @login_required(login_url='user_login')
 def logout(request):
     auth_logout(request)
     return redirect('user_login')
@@ -69,7 +69,7 @@ def randomGen():
     return int(random.uniform(10000000, 99999999))
 
 
-@login_required(login_url='user_login')
+# @login_required(login_url='user_login')
 def account_details(request):
     try:
         curr_user = Account_Number.objects.get(user_name=request.user)
@@ -81,12 +81,12 @@ def account_details(request):
     return render(request, "account_details.html", {"curr_user": curr_user})
 
 
-@login_required(login_url='user_login')
+# @login_required(login_url='user_login')
 def account_balance(request):
     return render(request, "account_balance.html")
 
 
-@login_required(login_url='user_login')
+# @login_required(login_url='user_login')
 def transfer(request):
     return render(request, "transfer.html")
 
@@ -114,6 +114,7 @@ def deposit(request):
         return render(request, 'with_dep.html', context)
 
 
+# @login_required(login_url='user_login')
 def withdraw(request):
     if not request.user.is_authenticated:
         raise Http404
@@ -143,18 +144,30 @@ def withdraw(request):
         return render(request, "with_dep.html", context)
 
 
+@login_required(login_url='user_login')
 def transfer_money(request):
     if request.method == 'POST':
-        form = TransferMoneyForm(request.POST)
+        form = TransferMoneyForm(request.POST or None)
         if form.is_valid():
-            form.save()
-            messages.add_message(request, messages.INFO, 'Payment Successfully Done !!!')
-            return redirect('home')
+            transfer = form.save(commit=False)
+            transfer.user = request.user
+            if transfer.user.balance >= transfer.amount:
+
+                transfer.user.balance -= transfer.amount
+                transfer.user.save() 
+                transfer.save()
+                return redirect("home")
+
+            else:
+                return render(request, "you can't transfer the amount")
+        messages.add_message(request, messages.INFO, 'Payment Successfully Done !!!')
+        return redirect('home')
     else:
         form = TransferMoneyForm()
     return render(request, 'transfer_money.html', {'form': form})
 
 
+@login_required(login_url='user_login')
 def edit_profile(request):
     if request.method == 'POST':
         p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user)
@@ -169,3 +182,8 @@ def edit_profile(request):
         'p_form': p_form
     }
     return render(request, 'edit_profile.html', context)
+
+
+def get(request):
+    transactions = Transactions.objects.all()
+    return render(request, 'transaction.html', {'transactions': transactions})

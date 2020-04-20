@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.validators import (MinValueValidator, MaxValueValidator)
-from .models import UserProfile, Transactions
+from .models import UserProfile, Transactions, Transfer_Money
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -124,7 +124,7 @@ class TransferMoneyForm(forms.ModelForm):
         attrs={'class': 'form-control', 'placeholder': 'Enter the IFSC Code'}))
 
     account_no = forms.IntegerField(validators=[
-            MinValueValidator(10000000),
+            MinValueValidator(100000),
             MaxValueValidator(99999999999999999)
         ], required=True, widget=forms.NumberInput(
         attrs={'class': 'form-control', 'placeholder': 'Enter the Account No.'}))
@@ -133,5 +133,5 @@ class TransferMoneyForm(forms.ModelForm):
         attrs={'class': 'form-control', 'placeholder': 'Enter the Amount'}))
 
     class Meta:
-        model = Transactions
+        model = Transfer_Money
         fields = {'Recipient_Name', 'IFSC', 'account_no', 'amount'}
